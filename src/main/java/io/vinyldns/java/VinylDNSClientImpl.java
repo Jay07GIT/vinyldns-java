@@ -136,6 +136,29 @@ public class VinylDNSClientImpl implements VinylDNSClient {
   }
 
   @Override
+  public VinylDNSResponse<ListAbandonedZonesResponse> listAbandonedZones(
+      ListAbondonedZonesRequest request) {
+    String path = "zones/deleted/changes";
+
+    VinylDNSRequest<Void> vinylDNSRequest =
+        new VinylDNSRequest<>(Methods.GET.name(), getBaseUrl(), path, null);
+
+    if (request.getNameFilter() != null) {
+      vinylDNSRequest.addParameter("nameFilter", request.getNameFilter());
+    }
+
+    if (request.getStartFrom() != null) {
+      vinylDNSRequest.addParameter("startFrom", request.getStartFrom());
+    }
+
+    if (request.getMaxItems() != null) {
+      vinylDNSRequest.addParameter("maxItems", request.getMaxItems().toString());
+    }
+
+    return executeRequest(vinylDNSRequest, ListAbandonedZonesResponse.class);
+  }
+
+  @Override
   public VinylDNSResponse<ZoneResponse> syncZone(ZoneRequest request) {
     String path = "zones/" + request.getZoneId() + "/sync";
     return executeRequest(

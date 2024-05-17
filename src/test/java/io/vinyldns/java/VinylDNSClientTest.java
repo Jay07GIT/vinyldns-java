@@ -205,6 +205,47 @@ public class VinylDNSClientTest {
   }
 
   @Test
+  public void listAbandonedZoneSuccess() {
+    String nameFilter = "someFilter";
+    String startFrom = "someStart";
+    int maxItems = 55;
+    ZoneResponse zoneChange =
+        new ZoneResponse(
+            testZone1,
+            "someUserId",
+            ZoneChangeType.Update,
+            ZoneChangeStatus.Pending,
+            new DateTime(),
+            "",
+            "1234");
+
+    List<AbandonedZoneChangeResponse> zonesDeletedInfo =
+        Collections.singletonList(
+            new AbandonedZoneChangeResponse(
+                zoneChange, "someAdminGroupName", "someUserName", true));
+
+    ListAbandonedZonesResponse listAbandonedZonesResponse =
+        new ListAbandonedZonesResponse(zonesDeletedInfo, startFrom, "nextId", maxItems, true);
+    wireMockServer.stubFor(
+        get(urlMatching("/zones/deleted/changes?(.*)"))
+            .withQueryParam("nameFilter", equalTo(nameFilter))
+            .withQueryParam("startFrom", equalTo(startFrom))
+            .withQueryParam("maxItems", equalTo(String.valueOf(maxItems)))
+            .willReturn(
+                aResponse()
+                    .withStatus(200)
+                    .withHeader("Content-Type", "application/json")
+                    .withBody(client.gson.toJson(listAbandonedZonesResponse))));
+
+    VinylDNSResponse<ListAbandonedZonesResponse> vinylDNSResponse =
+        client.listAbandonedZones(
+            new ListAbondonedZonesRequest(nameFilter, startFrom, maxItems, true));
+
+    assertTrue(vinylDNSResponse instanceof ResponseMarker.Success);
+    assertEquals(vinylDNSResponse.getStatusCode(), 200);
+  }
+
+  @Test
   public void getZoneByNameSuccess() {
     String response = client.gson.toJson(new GetZoneResponse(testZone1));
 
